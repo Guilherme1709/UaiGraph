@@ -1,0 +1,60 @@
+# Git ignore para o projeto GraphPoliticsRAG
+
+# Variáveis de ambiente e credenciais sensíveis (NUNCA COMMITAR)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Angular / Node
+frontend-angular/node_modules/
+frontend-angular/.angular/
+frontend-angular/dist/
+frontend-angular/.vscode/
+frontend/dist/
+node_modules/
+dist/
+.angular/
+
+# IDEs e Editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs e arquivos de depuração
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Diretório de rascunhos locais
+scratch/

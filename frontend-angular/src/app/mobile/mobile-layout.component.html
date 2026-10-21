@@ -1,0 +1,38 @@
+<!-- MOBILE SUB-HEADER COM ABAS (Dossiê vs Grafo) -->
+<div class="fixed top-14 left-0 right-0 z-40 flex items-center border-b border-outline-variant/20 bg-surface-container-low px-2 py-1 gap-1">
+  <button (click)="selectTab('dossier')" [ngClass]="state.mobileTab() === 'dossier' ? 'bg-surface text-primary border-outline-variant/40 shadow-sm font-semibold' : 'text-on-surface-variant hover:text-on-surface border-transparent'" class="flex-1 py-1.5 rounded-lg border text-[12px] font-data-mono-sm flex items-center justify-center gap-1.5 transition-all">
+    <span class="material-symbols-outlined text-[16px]">description</span>
+    <span>Dossiê & Análise</span>
+  </button>
+  <button (click)="selectTab('graph')" [ngClass]="state.mobileTab() === 'graph' ? 'bg-surface text-primary border-outline-variant/40 shadow-sm font-semibold' : 'text-on-surface-variant hover:text-on-surface border-transparent'" class="flex-1 py-1.5 rounded-lg border text-[12px] font-data-mono-sm flex items-center justify-center gap-1.5 transition-all relative">
+    <span class="material-symbols-outlined text-[16px]">hub</span>
+    <span>Grafo Interativo</span>
+    <span *ngIf="state.hasGraph()" class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+  </button>
+</div>
+
+<!-- WORKSPACE MOBILE EM TELA CHEIA (Alterna conforme a aba ativa) -->
+<div class="pt-10 min-h-[calc(100dvh-6rem)] w-full">
+
+  <!-- ABA 1: DOSSIÊ & ANÁLISE -->
+  <div *ngIf="state.mobileTab() === 'dossier'" class="bg-surface-container-lowest flex flex-col justify-between overflow-y-auto min-h-[calc(100dvh-6rem)] w-full">
+    <app-dossier-panel [isMobileView]="true"></app-dossier-panel>
+    
+    <!-- Minimal Footer -->
+    <div class="border-t border-outline-variant/40 bg-surface-container-low px-3 py-2 flex-shrink-0">
+      <div class="flex items-center justify-between text-outline font-data-mono-sm text-[10px]">
+        <span class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[12px] text-tertiary">verified</span>
+          Dados: API Aberta da Câmara dos Deputados
+        </span>
+        <span>57ª Leg. (2023–2027)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA 2: GRAFO INTERATIVO -->
+  <div *ngIf="state.mobileTab() === 'graph'" class="bg-[#F4F5F7] relative flex flex-col justify-between overflow-hidden h-[calc(100dvh-6rem)] w-full">
+    <app-graph-panel #mobileGraphPanel [isMobileView]="true"></app-graph-panel>
+  </div>
+
+</div>

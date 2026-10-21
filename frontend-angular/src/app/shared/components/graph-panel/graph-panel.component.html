@@ -1,0 +1,121 @@
+<!-- SVG dot grid background -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern height="24" id="dot-grid" patternunits="userSpaceOnUse" width="24">
+      <circle cx="2" cy="2" fill="#9CA3AF" r="1.2"></circle>
+    </pattern>
+  </defs>
+  <rect fill="url(#dot-grid)" height="100%" width="100%"></rect>
+</svg>
+
+<!-- GRAPH TOP TOOLBAR (Responsiva com rolagem horizontal no mobile) -->
+<div class="relative z-20 px-2 sm:px-space-md py-1.5 flex items-center justify-between gap-1 sm:gap-space-sm bg-surface-container-lowest/90 backdrop-blur border-b border-outline-variant/50">
+  <!-- Graph info -->
+  <span class="font-data-mono-sm text-[11px] text-on-surface-variant flex-shrink-0 flex items-center">
+    <span class="material-symbols-outlined text-[14px] mr-0.5 text-primary">hub</span>
+    <span class="hidden sm:inline">Grafo de Evidências</span>
+    <span class="sm:hidden font-semibold">Grafo</span>
+  </span>
+
+  <!-- Zoom Controls & Limits (Rolagem horizontal suave para mobile) -->
+  <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 flex-nowrap max-w-[calc(100vw-5rem)] sm:max-w-none">
+    <!-- Modo de Visualização do Grafo -->
+    <select [ngModel]="state.graphFilterMode()" (ngModelChange)="state.setGraphMode($event)" class="px-1.5 sm:px-2 h-7 bg-surface border border-outline-variant/60 rounded text-on-surface font-label-caps text-[10px] uppercase font-semibold outline-none cursor-pointer hover:bg-surface-container transition-colors flex-shrink-0" title="Modo de filtragem do grafo">
+      <option value="all">Modo: Geral</option>
+      <option value="coautoria">Modo: Coautoria</option>
+      <option value="partidos">Modo: Partidos</option>
+    </select>
+    <select [ngModel]="state.maxNodes()" (ngModelChange)="state.setMaxNodes($event)" class="px-1.5 sm:px-2 h-7 bg-surface border border-outline-variant/60 rounded text-on-surface font-label-caps text-[10px] uppercase font-semibold outline-none cursor-pointer hover:bg-surface-container transition-colors flex-shrink-0" title="Limite máximo de nós renderizados no grafo">
+      <option [ngValue]="25">25 Nós</option>
+      <option [ngValue]="50">50 Nós</option>
+      <option [ngValue]="100">100 Nós</option>
+      <option [ngValue]="300">Completo</option>
+    </select>
+    <button (click)="state.toggleGraphDensity()" [class.bg-primary]="state.isExpandedLayout()" [class.text-white]="state.isExpandedLayout()" class="px-2 h-7 flex items-center gap-1 bg-surface border border-outline-variant/60 rounded text-on-surface font-label-caps text-[10px] uppercase font-semibold hover:bg-surface-container transition-colors flex-shrink-0" [title]="state.isExpandedLayout() ? 'Retornar ao espaçamento padrão' : 'Aumentar espaçamento e raio entre os nós'">
+      <span class="material-symbols-outlined text-[14px]">{{ state.isExpandedLayout() ? 'close_fullscreen' : 'open_in_full' }}</span>
+      <span class="hidden sm:inline">{{ state.isExpandedLayout() ? 'Compacto' : 'Espaçar' }}</span>
+    </button>
+    <button (click)="state.toggleEdgeLabels()" [class.bg-primary]="state.showEdgeLabels()" [class.text-white]="state.showEdgeLabels()" class="px-2 h-7 flex items-center gap-1 bg-surface border border-outline-variant/60 rounded text-on-surface font-label-caps text-[10px] uppercase font-semibold hover:bg-surface-container transition-colors flex-shrink-0" title="Mostrar ou ocultar rótulos nas arestas (ex: PROPOS)">
+      <span class="material-symbols-outlined text-[14px]">label</span>
+      <span class="hidden sm:inline">Rótulos</span>
+    </button>
+    <div class="h-4 w-px bg-outline-variant/60 mx-0.5 flex-shrink-0"></div>
+    <button (click)="zoomIn()" class="w-7 h-7 flex items-center justify-center bg-surface border border-outline-variant/60 rounded hover:bg-surface-container transition-colors text-on-surface flex-shrink-0" title="Aproximar">
+      <span class="material-symbols-outlined text-[17px]">add</span>
+    </button>
+    <button (click)="zoomOut()" class="w-7 h-7 flex items-center justify-center bg-surface border border-outline-variant/60 rounded hover:bg-surface-container transition-colors text-on-surface flex-shrink-0" title="Afastar">
+      <span class="material-symbols-outlined text-[17px]">remove</span>
+    </button>
+    <button (click)="fitGraph()" class="w-7 h-7 flex items-center justify-center bg-surface border border-outline-variant/60 rounded hover:bg-surface-container transition-colors text-on-surface flex-shrink-0" title="Recentralizar">
+      <span class="material-symbols-outlined text-[17px]">filter_center_focus</span>
+    </button>
+    <button (click)="focusHubs()" class="px-2 h-7 flex items-center gap-1 bg-surface-container-high border border-primary/40 rounded text-primary font-label-caps text-[10px] uppercase font-semibold hover:bg-primary hover:text-white transition-colors flex-shrink-0" title="Destacar Hubs">
+      <span class="material-symbols-outlined text-[14px]">hub</span>
+      Hubs
+    </button>
+  </div>
+</div>
+
+<!-- GRAPH CANVAS (Ocupa 100% da área disponível) -->
+<div class="network-canvas-wrapper p-2 sm:p-space-md select-none overflow-hidden relative flex-1">
+  <div #networkContainer class="network-canvas"></div>
+
+  <!-- PLACEHOLDER QUANDO O GRAFO ESTÁ EM BRANCO -->
+  <div *ngIf="!state.hasGraph() && !state.isLoading()" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center">
+    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-surface-container-high/90 text-on-surface-variant flex items-center justify-center mb-3 border border-outline-variant/40 shadow-sm">
+      <span class="material-symbols-outlined text-[26px] sm:text-[30px] text-primary">hub</span>
+    </div>
+    <h3 class="font-data-mono-sm text-[13px] sm:text-[14px] font-semibold text-on-surface">Subgrafo de Conexões</h3>
+    <p class="font-data-mono-sm text-[11px] sm:text-[12px] text-outline max-w-xs mt-1">
+      Faça uma pesquisa ou clique em uma sugestão para visualizar as relações e entidades no grafo.
+    </p>
+  </div>
+
+  <!-- COLLAPSIBLE LEGEND (click to toggle) -->
+  <div *ngIf="state.hasGraph()" class="absolute top-2 sm:top-space-md right-2 sm:right-space-md z-10 pointer-events-auto">
+    <button (click)="legendOpen = !legendOpen" class="flex items-center gap-1 px-2 py-1 rounded bg-surface-container-lowest/95 border border-outline-variant/60 text-[11px] font-data-mono-sm text-on-surface-variant hover:text-on-surface shadow-sm transition-colors">
+      <span class="material-symbols-outlined text-[14px]">info</span>
+      <span *ngIf="!legendOpen">Legenda</span>
+    </button>
+    <div *ngIf="legendOpen" class="mt-1 bg-surface-container-lowest/95 border border-outline-variant/60 rounded p-space-sm shadow-sm space-y-1.5 text-[11px] font-data-mono-sm">
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded-full border-2 border-primary bg-surface"></span>
+        <span class="text-on-surface">Parlamentar</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rotate-45 bg-[#f59e0b]"></div>
+        <span class="text-on-surface">Proposição / Lei</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded bg-[#a855f7]"></span>
+        <span class="text-on-surface">Partido Político</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-4 h-0.5 bg-primary"></span>
+        <span class="text-on-surface-variant">Relação</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIMPLIFIED BOTTOM BAR -->
+<div class="relative z-30 px-3 sm:px-space-md py-2 bg-surface-container-lowest border-t border-outline-variant/50 flex items-center justify-between gap-2 flex-shrink-0">
+  <div class="flex items-center gap-1.5 sm:gap-2 font-data-mono-sm text-[11px] sm:text-[12px] truncate">
+    <span class="font-semibold text-primary truncate max-w-[170px] sm:max-w-xs">
+      {{ state.selectedNode()?.rawLabel || state.currentDossier()?.name || 'Nenhum nó selecionado' }}
+    </span>
+    <span *ngIf="state.selectedNode()?.category || state.currentDossier()" class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant text-[9px] sm:text-[10px] flex-shrink-0">
+      {{ state.selectedNode()?.category || 'Politician' }}
+    </span>
+  </div>
+  <div class="flex items-center gap-1.5 flex-shrink-0">
+    <button *ngIf="isMobileView && (state.selectedNode()?.category === 'Politician' || state.currentDossier())" (click)="goToDossier()" class="px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/30 text-[11px] font-semibold flex items-center gap-1 active:scale-95 transition-all" title="Ver dossiê do parlamentar selecionado">
+      <span class="material-symbols-outlined text-[13px]">description</span>
+      <span>Ver Dossiê</span>
+    </button>
+    <button (click)="state.investigateSelectedNode()" [disabled]="!state.selectedNode() && !state.currentDossier() && state.detectedEntities().length === 0" class="px-2.5 sm:px-3 py-1 rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 text-[11px] font-semibold flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+      <span class="material-symbols-outlined text-[13px]">psychology</span>
+      <span>Investigar</span>
+    </button>
+  </div>
+</div>

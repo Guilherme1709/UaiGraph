@@ -1,0 +1,211 @@
+<div class="p-3 sm:p-space-lg space-y-space-md">
+  
+  <!-- SEARCH BAR -->
+  <div class="space-y-space-xs">
+    <form (submit)="executeSearch()" class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span>
+      <input [ngModel]="state.searchQuery()" (ngModelChange)="state.searchQuery.set($event)" name="query" class="w-full pl-9 pr-24 py-2.5 bg-surface-container-low border border-outline-variant/60 rounded-lg text-on-surface font-data-mono-sm text-[13px] placeholder:text-outline focus:outline-none focus:border-primary focus:bg-surface-container-lowest transition-all" placeholder="Pergunte sobre um deputado, partido..." type="text" />
+      <button type="submit" [disabled]="state.isLoading()" class="absolute right-1.5 top-1.5 px-3 py-1.5 bg-primary text-on-primary font-label-caps text-[10px] uppercase tracking-wider rounded-md hover:bg-primary-container transition-colors font-semibold disabled:opacity-50">
+        {{ state.isLoading() ? 'Buscando...' : 'Executar' }}
+      </button>
+    </form>
+
+    <!-- Quick Suggestions -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-nowrap sm:flex-wrap">
+      <ng-container *ngIf="state.popularPoliticians().length > 0; else fallbackChips">
+        <button *ngFor="let p of state.popularPoliticians().slice(0, 5)" type="button" (click)="executeQuickSearch('Quem é ' + p.name + ' e quais projetos ele propôs?')" class="px-2.5 py-1 rounded-full bg-surface border border-outline-variant/50 hover:border-primary text-on-surface font-data-mono-sm text-[11px] transition-colors flex items-center gap-1 flex-shrink-0">
+          <span>{{ p.name }}</span>
+          <span class="text-[9px] px-1 rounded bg-primary/10 text-primary font-bold">{{ p.party }}</span>
+        </button>
+      </ng-container>
+
+      <ng-template #fallbackChips>
+        <button type="button" (click)="executeQuickSearch('Quais projetos a deputada Célia Xakriabá apresentou?')" class="px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary font-data-mono-sm text-[11px] font-medium hover:bg-primary/20 transition-colors flex-shrink-0">
+          Célia Xakriabá
+        </button>
+        <button type="button" (click)="executeQuickSearch('O que o deputado Aécio Neves propôs recentemente?')" class="px-2.5 py-1 rounded-full bg-surface border border-outline-variant/50 hover:border-primary text-on-surface font-data-mono-sm text-[11px] transition-colors flex-shrink-0">
+          Aécio Neves
+        </button>
+        <button type="button" (click)="executeQuickSearch('Quais as principais propostas do deputado Reginaldo Lopes?')" class="px-2.5 py-1 rounded-full bg-surface border border-outline-variant/50 hover:border-primary text-on-surface font-data-mono-sm text-[11px] transition-colors flex-shrink-0">
+          Reginaldo Lopes
+        </button>
+        <button type="button" (click)="executeQuickSearch('Quais projetos foram apresentados por Nikolas Ferreira?')" class="px-2.5 py-1 rounded-full bg-surface border border-outline-variant/50 hover:border-primary text-on-surface font-data-mono-sm text-[11px] transition-colors flex-shrink-0">
+          Nikolas Ferreira
+        </button>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="h-px bg-outline-variant/30"></div>
+
+  <!-- ESTADO CARREGANDO -->
+  <div *ngIf="state.isLoading()" class="py-16 text-center space-y-4">
+    <div class="inline-block animate-spin w-9 h-9 border-3 border-primary border-t-transparent rounded-full"></div>
+    <div class="space-y-1">
+      <p class="font-data-mono-sm text-[13px] font-semibold text-on-surface">Consultando Grafo...</p>
+      <p class="font-data-mono-sm text-[11px] text-outline">Recuperando subgrafo no Neo4j e sintetizando resposta grounded</p>
+    </div>
+  </div>
+
+  <!-- DOSSIÊ & RESPOSTA (quando há consulta realizada) -->
+  <article *ngIf="!state.isLoading() && (state.currentAnswerHtml() || state.currentDossier()); else emptyWelcomeState" class="space-y-space-md">
+    
+    <!-- Banner de chamada rápida para o Grafo no Mobile -->
+    <div *ngIf="isMobileView && state.hasGraph()" class="p-3 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-between gap-2 shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-[20px]">hub</span>
+        <div>
+          <div class="font-data-mono-sm text-[11px] font-bold text-on-surface">Grafo de Evidências Disponível</div>
+          <div class="text-[10px] text-on-surface-variant font-data-mono-sm">Veja as conexões visuais interativas</div>
+        </div>
+      </div>
+      <button (click)="goToGraph()" class="px-3 py-1.5 rounded-lg bg-primary text-white text-[11px] font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-all flex-shrink-0">
+        <span>Ver Grafo</span>
+        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+      </button>
+    </div>
+
+    <!-- Profile Header quando é um parlamentar específico -->
+    <div *ngIf="state.currentDossier()" class="flex items-start gap-3 sm:gap-space-md">
+      <div class="relative flex-shrink-0">
+        <img *ngIf="state.currentDossier()?.photo_url" class="w-12 h-16 sm:w-14 sm:h-[4.5rem] object-cover rounded-lg border border-outline-variant shadow-sm bg-surface-container" [src]="state.currentDossier()!.photo_url" [alt]="state.currentDossier()?.name" />
+        <div *ngIf="!state.currentDossier()?.photo_url" class="w-12 h-16 sm:w-14 sm:h-[4.5rem] rounded-lg border border-outline-variant shadow-sm bg-surface-container flex items-center justify-center text-primary font-bold text-base sm:text-lg">
+          {{ ((state.currentDossier()?.name || 'DP') | slice:0:2).toUpperCase() }}
+        </div>
+      </div>
+      <div class="space-y-0.5 flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-data-mono-sm text-[10px] sm:text-[11px] font-bold">
+            {{ state.currentDossier()?.party || 'Partido' }}
+          </span>
+          <span class="font-data-mono-sm text-[10px] sm:text-[11px] text-on-surface-variant">Bancada MG • 57ª Leg.</span>
+        </div>
+        <h1 class="font-headline-md text-[17px] sm:text-[18px] text-on-surface font-semibold tracking-tight leading-tight truncate">
+          Dep. {{ state.currentDossier()!.name }}
+        </h1>
+        <div class="flex items-center gap-2 sm:gap-3 font-data-mono-sm text-[10px] sm:text-[11px] text-on-surface-variant flex-wrap">
+          <span *ngIf="state.currentDossier()?.total_bills" class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-primary">description</span>
+            {{ state.currentDossier()!.total_bills }} proposições
+          </span>
+          <span *ngIf="state.currentDossier()?.total_connections" class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-secondary">hub</span>
+            {{ state.currentDossier()!.total_connections }} conexões
+          </span>
+          <a *ngIf="state.currentDossier()?.email" [href]="'mailto:' + state.currentDossier()!.email" class="text-primary hover:underline flex items-center gap-0.5 truncate">
+            <span class="material-symbols-outlined text-[13px]">mail</span>
+            <span class="truncate max-w-[150px] sm:max-w-none">{{ state.currentDossier()!.email }}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header temático quando a consulta é geral -->
+    <div *ngIf="!state.currentDossier() && state.currentAnswerHtml()" class="flex items-center gap-3 pb-3 border-b border-outline-variant/30">
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-sm flex-shrink-0">
+        <span class="material-symbols-outlined text-[22px] sm:text-[26px]">account_balance</span>
+      </div>
+      <div class="space-y-0.5">
+        <div class="flex items-center gap-1.5">
+          <span class="px-2 py-0.5 rounded bg-primary/10 text-primary font-data-mono-sm text-[10px] font-bold uppercase tracking-wider">
+            {{ state.detectedEntities()[0] || 'Consulta Parlamentar' }}
+          </span>
+          <span class="font-data-mono-sm text-[10px] sm:text-[11px] text-on-surface-variant">Bancada MG • 57ª Leg.</span>
+        </div>
+        <h2 class="font-headline-md text-[16px] sm:text-[17px] text-on-surface font-semibold tracking-tight">
+          Inteligência da Bancada de Minas Gerais
+        </h2>
+      </div>
+    </div>
+
+    <!-- RAG Answer -->
+    <div class="space-y-space-sm text-on-surface font-headline-sm text-[14px] sm:text-[15px] leading-[22px] sm:leading-[23px]">
+      <div class="prose prose-sm max-w-none text-on-surface select-text" [innerHTML]="state.currentAnswerHtml()"></div>
+    </div>
+
+    <!-- Legislative Evidence Table -->
+    <div *ngIf="state.evidenceBills().length > 0" class="space-y-space-xs pt-space-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-label-caps text-[11px] uppercase text-on-surface font-semibold tracking-wider flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px] text-primary">gavel</span>
+          Proposições no Subgrafo
+        </span>
+        <span class="font-data-mono-sm text-[11px] text-outline">{{ state.evidenceBills().length }} matérias</span>
+      </div>
+      <div class="overflow-x-auto border border-outline-variant/60 rounded-lg bg-surface-container-lowest">
+        <table class="w-full text-left font-data-mono-sm text-data-mono-sm">
+          <thead>
+            <tr class="bg-surface-container-low border-b border-outline-variant/60 text-on-surface-variant font-label-caps text-[10px] uppercase">
+              <th class="py-2 px-2.5">Proposição</th>
+              <th class="py-2 px-2">Relação</th>
+              <th class="py-2 px-2.5 text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/30 text-[12px]">
+            <tr *ngFor="let b of state.evidenceBills(); let idx = index" class="hover:bg-surface-container transition-colors" [ngClass]="{'bg-surface-container-low/30': idx % 2 === 1}">
+              <td class="py-2 px-2.5">
+                <div class="font-semibold text-primary cursor-pointer hover:underline text-[12px]" (click)="openBillModal(b)">
+                  {{ b.label }}
+                </div>
+                <div class="text-[11px] text-outline line-clamp-2 max-w-xs sm:max-w-sm cursor-pointer" (click)="openBillModal(b)" [title]="b.ementa || 'Clique para ver a descrição completa'">
+                  {{ b.ementa || 'Proposição Legislativa' }}
+                </div>
+              </td>
+              <td class="py-2 px-2">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/30 whitespace-nowrap">
+                  {{ b.relation || 'PROPOS' }}
+                </span>
+              </td>
+              <td class="py-2 px-2.5 text-right">
+                <button (click)="openBillModal(b)" class="text-primary hover:text-primary-container text-[11px] font-semibold flex items-center justify-end gap-1 ml-auto cursor-pointer" title="Ver descrição completa">
+                  <span class="hidden sm:inline">Ver</span>
+                  <span class="material-symbols-outlined text-[15px]">visibility</span>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="state.evidenceBills().length === 0">
+              <td colspan="3" class="py-3 px-2 text-center text-outline text-[11px]">Nenhuma proposição vinculada no recorte atual.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detected Entities Badges -->
+    <div *ngIf="state.detectedEntities().length > 0" class="flex items-center gap-1.5 flex-wrap pt-1">
+      <span class="font-label-caps text-[10px] uppercase text-on-surface-variant font-semibold mr-1">Entidades:</span>
+      <span *ngFor="let ent of state.detectedEntities()" (click)="executeQuickSearch('Quem é ' + ent + '?')" class="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-primary font-data-mono-sm text-[11px] font-semibold cursor-pointer hover:bg-primary/20">
+        {{ ent }}
+      </span>
+    </div>
+
+  </article>
+
+  <!-- ESTADO INICIAL EM BRANCO -->
+  <ng-template #emptyWelcomeState>
+    <div *ngIf="!state.isLoading()" class="py-8 sm:py-10 px-2 text-center space-y-4 sm:space-y-5">
+      <img src="logo.png" alt="UaiGraph Logo" class="w-20 h-20 sm:w-24 sm:h-24 mx-auto object-contain transition-transform duration-300 hover:scale-105">
+      <div class="space-y-1.5">
+        <p class="text-[12px] text-on-surface-variant max-w-sm mx-auto font-data-mono-sm leading-relaxed">
+          Consulte propostas, filiações partidárias e conexões dos 53 deputados federais de Minas Gerais.
+        </p>
+      </div>
+
+      <!-- Sugestões de consulta -->
+      <div class="pt-2 space-y-2 text-left max-w-sm mx-auto">
+        <span class="font-label-caps text-[10px] uppercase text-outline font-semibold tracking-wider">Perguntas recomendadas:</span>
+        <div class="space-y-1.5">
+          <button *ngFor="let q of (state.sampleQuestions().length > 0 ? state.sampleQuestions().slice(0, 4) : [
+            'Quais projetos a deputada Célia Xakriabá apresentou?',
+            'O que o deputado Aécio Neves propôs recentemente?',
+            'Quais as principais propostas de Reginaldo Lopes?',
+            'Quais projetos foram apresentados por Nikolas Ferreira?'
+          ])" (click)="executeQuickSearch(q)" class="w-full text-left p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/40 text-[12px] font-data-mono-sm text-on-surface hover:text-primary transition-all flex items-center justify-between group shadow-sm">
+            <span class="line-clamp-1 pr-2">{{ q }}</span>
+            <span class="material-symbols-outlined text-[15px] text-outline group-hover:text-primary transition-colors flex-shrink-0">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</div>

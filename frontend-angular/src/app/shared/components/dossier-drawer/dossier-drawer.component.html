@@ -1,0 +1,57 @@
+<!-- GAVETA LATERAL: DOSSIÊS DA BANCADA DE MINAS GERAIS -->
+<div *ngIf="state.isDrawerOpen()" class="fixed inset-0 z-50 overflow-hidden bg-black/50 backdrop-blur-xs transition-opacity" (click)="state.toggleDossierDrawer()">
+  <div class="fixed inset-y-0 left-0 w-full sm:w-96 max-w-full bg-surface-container-lowest border-r border-outline-variant/50 shadow-2xl flex flex-col p-space-md space-y-space-sm" (click)="$event.stopPropagation()">
+    
+    <div class="flex items-center justify-between pb-space-sm border-b border-outline-variant/40">
+      <div>
+        <h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Bancada de MG</h2>
+        <span class="font-data-mono-sm text-[11px] text-on-surface-variant">{{ state.filteredPoliticians().length }} parlamentares</span>
+      </div>
+      <button (click)="state.toggleDossierDrawer()" class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Fechar">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+
+    <!-- Barra de busca no drawer -->
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-2.5 top-2 text-outline text-[18px]">search</span>
+      <input [ngModel]="state.drawerSearch()" (ngModelChange)="state.drawerSearch.set($event)" class="w-full pl-8 pr-3 py-2 bg-surface-container-low border border-outline-variant/60 rounded text-[13px] font-data-mono-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary" placeholder="Filtrar por nome..." />
+    </div>
+
+    <!-- Filtros de Partido -->
+    <div class="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[11px] font-data-mono-sm">
+      <button (click)="state.selectedPartyFilter.set('ALL')" class="px-2.5 py-1 rounded border transition-colors flex-shrink-0" [ngClass]="state.selectedPartyFilter() === 'ALL' ? 'bg-primary text-on-primary border-primary font-bold' : 'bg-surface text-on-surface border-outline-variant/50 hover:border-primary'">
+        TODOS
+      </button>
+      <button *ngFor="let pty of state.uniqueParties()" (click)="state.selectedPartyFilter.set(pty)" class="px-2.5 py-1 rounded border transition-colors flex-shrink-0" [ngClass]="state.selectedPartyFilter() === pty ? 'bg-primary text-on-primary border-primary font-bold' : 'bg-surface text-on-surface border-outline-variant/50 hover:border-primary'">
+        {{ pty }}
+      </button>
+    </div>
+
+    <!-- Lista dos Deputados -->
+    <div class="flex-1 overflow-y-auto space-y-1.5 pr-1 divide-y divide-outline-variant/20">
+      <div *ngFor="let pol of state.filteredPoliticians(); trackBy: trackByName" (click)="state.selectPoliticianFromDrawer(pol)" style="content-visibility: auto; contain-intrinsic-size: auto 56px;" class="pt-1.5 flex items-center justify-between p-2.5 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors group min-h-[48px]">
+        <div class="flex items-center gap-2.5">
+          <img *ngIf="pol.photo_url" [src]="pol.photo_url" loading="lazy" decoding="async" width="36" height="44" class="w-9 h-11 object-cover rounded border border-outline-variant/40 bg-surface-container flex-shrink-0" [alt]="pol.name" />
+          <div *ngIf="!pol.photo_url" class="w-9 h-11 rounded border border-outline-variant/40 bg-primary/10 text-primary flex items-center justify-center font-bold text-[12px] flex-shrink-0">
+            {{ (pol.name | slice:0:2).toUpperCase() }}
+          </div>
+          <div>
+            <div class="font-data-mono-sm text-[12px] font-semibold text-on-surface group-hover:text-primary transition-colors">
+              {{ pol.name }}
+            </div>
+            <div class="flex items-center gap-1.5 text-[10px] font-data-mono-sm text-on-surface-variant">
+              <span class="px-1 py-0.2 rounded bg-secondary/10 text-secondary font-bold">{{ pol.party }}</span>
+              <span>• {{ pol.total_bills || 0 }} projetos</span>
+            </div>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-[16px] text-outline group-hover:text-primary transition-colors">chevron_right</span>
+      </div>
+      <div *ngIf="state.filteredPoliticians().length === 0" class="py-8 text-center text-outline text-[12px]">
+        Nenhum parlamentar encontrado para o filtro.
+      </div>
+    </div>
+
+  </div>
+</div>

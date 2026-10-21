@@ -1,0 +1,17 @@
+<!-- HEADER COMPARTILHADO -->
+<app-header></app-header>
+
+<!-- GAVETA LATERAL COMPARTILHADA (BANCADA DE MG) -->
+<app-dossier-drawer></app-dossier-drawer>
+
+<!-- MODAL COMPARTILHADO DE EMENTAS LEGISLATIVAS -->
+<app-bill-modal></app-bill-modal>
+
+<!-- ÁREA PRINCIPAL -->
+<main class="relative pt-14 min-h-screen bg-surface">
+  <!-- LAYOUT DESKTOP (Renderizado em telas >= 1024px) -->
+  <app-desktop-layout *ngIf="!isMobile()"></app-desktop-layout>
+
+  <!-- LAYOUT MOBILE (Renderizado em telas < 1024px) -->
+  <app-mobile-layout *ngIf="isMobile()"></app-mobile-layout>
+</main>
