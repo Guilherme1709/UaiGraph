@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia código-fonte da aplicação
 COPY api.py database.py engine.py ./
-COPY scripts/ ./scripts/ 2>/dev/null || true
+COPY scripts/ ./scripts/
 
 # Cria usuário não-root para segurança em produção
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
@@ -29,6 +29,6 @@ EXPOSE 8000
 
 # Healthcheck interno do container
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["sh", "-c", "exec uvicorn api:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"]
