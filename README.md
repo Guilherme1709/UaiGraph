@@ -1,4 +1,4 @@
-# GraphPoliticsRAG 🏛️🔍
+# UaiGraph 🏛️🔍
 
 Sistema de **Graph RAG (Retrieval-Augmented Generation sobre Grafos de Conhecimento)** focado na bancada de Deputados Federais de Minas Gerais (MG) no Congresso Nacional.
 
