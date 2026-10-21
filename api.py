@@ -126,6 +126,16 @@ class GraphRequest(BaseModel):
 _POLITICIANS_TTL = 600.0  # segundos
 _politicians_cache = {"data": None, "ts": 0.0}
 
+@app.get("/", tags=["Root"])
+def root():
+    """Endpoint raiz com informações de status e documentação da API."""
+    return {
+        "service": "UaiGraph - Political Graph RAG API",
+        "status": "online",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health")
 @app.get("/api/health")
 def health_check():
