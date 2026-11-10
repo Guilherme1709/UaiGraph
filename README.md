@@ -28,7 +28,7 @@ O resultado é uma resposta **auditável**: o usuário vê o texto e o subgrafo 
 
 ### Destaques
 
-- **Graph RAG sem alucinação de entidades:** o LLM só recebe o contexto recuperado do grafo e é instruído a não extrapolar dele.
+- **Graph RAG com contexto recuperado do grafo:** o LLM só recebe o contexto recuperado do grafo e é instruído a não extrapolar dele.
 - **Resolução de entidades tolerante a erros:** "Celia Xakriaba", "Nikolas" ou "PL" apontam para o nó correto (sem acento, apelido ou erro de digitação).
 - **Respostas isoladas por intenção:** perguntar sobre um deputado mostra só ele, seus projetos e seu partido. Colegas de bancada só aparecem quando a pergunta pede.
 - **Resiliência de provedores de LLM:** Gemini como principal, Groq como fallback automático com janela de *cooldown* em caso de limite de cota.
@@ -58,7 +58,7 @@ flowchart LR
 O LLM identifica deputados, siglas de partido e códigos de projeto citados, devolvendo JSON validado pelo schema Pydantic. Um filtro léxico descarta termos genéricos ("câmara", "projetos", "deputados") e expressões regulares reforçam a captura precisa de legendas partidárias.
 
 **2. Resolução de entidades** ([`app/graph/resolver.py`](app/graph/resolver.py))
-A menção informal é convertida no nó canônico exato por meio de uma cascata de estratégias: verificação de partidos conhecidos, correspondência exata, busca *fulltext* (Lucene) tolerante a erros de digitação, correspondência fonética sem acentos e sobreposição de termos com limiar anti-falso-positivo. Possui cache em memória com TTL.
+A menção informal é convertida no nó canônico exato por meio de uma cascata de estratégias: verificação de partidos conhecidos, correspondência exata, busca *fulltext* (Lucene) tolerante a erros de digitação, correspondência textual sem acentos e sobreposição de termos com limiar anti-falso-positivo. Possui cache em memória com TTL.
 
 **3. Roteamento por intenção** ([`app/services/chat_service.py`](app/services/chat_service.py))
 O serviço analisa o teor semântico da pergunta (bancada completa, proposições em destaque ou colegas de mesma legenda) e decide a estratégia de recuperação, evitando poluição de contexto.
@@ -67,7 +67,7 @@ O serviço analisa o teor semântico da pergunta (bancada completa, proposiçõe
 Consultas Cypher percorrem o grafo no Neo4j descobrindo caminhos mais curtos, coautorias de projetos e relações diretas, gerando paralelamente o **contexto textual** para o LLM e o **subgrafo visual** interativo para o frontend.
 
 **5. Geração grounded** ([`app/llm/generation.py`](app/llm/generation.py))
-O prompt instrui o modelo com diretrizes rígidas de groundedness: o modelo responde exclusivamente com base no contexto injetado, com métricas oficiais fixas, e ignora tentativas de injeção de prompt.
+O prompt instrui o modelo com diretrizes rígidas de groundedness: o modelo responde exclusivamente com base no contexto injetado, com métricas oficiais fixas, e inclui instruções para mitigar tentativas de injeção de prompt. Essas instruções não garantem a ausência de erros ou ataques bem-sucedidos.
 
 ---
 
@@ -112,7 +112,7 @@ A base de código segue uma arquitetura modular por camadas de responsabilidade 
 ├── Dockerfile             # Imagem de produção OCI (usuário não-root, healthcheck ativo)
 │
 ├── scripts/               # ETL: coleta e ingestão dos dados da Câmara dos Deputados
-├── tests/                 # Suíte com 29 testes unitários (schemas, RAG, rotas, grafo)
+├── tests/                 # Suíte com 30 testes unitários (schemas, RAG, rotas, grafo)
 │
 └── frontend-angular/src/app/
     ├── services/          # Cliente HTTP e estado global reativo (Signals)
@@ -124,7 +124,7 @@ A base de código segue uma arquitetura modular por camadas de responsabilidade 
 ### Decisões de Arquitetura
 
 - **Desacoplamento HTTP vs. Domínio:** os endpoints em `app/api/` tratam apenas transporte HTTP, serialização e rate limiting. O fluxo de inteligência política é orquestrado pelo `ChatService` (`app/services/`), permitindo testes unitários com mocks sem necessidade de subir servidores ou bancos de dados.
-- **Camada de Grafos Especializada (`app/graph/`):** o antigo monólito foi particionado em submódulos coesos para gerenciamento de driver/índices (`connection.py`), consultas e mutações (`repositories.py`), resolução fonética/Lucene (`resolver.py`), montagem de contexto RAG (`context.py`) e extração de subgrafos para o Vis.js (`subgraph.py`).
+- **Camada de Grafos Especializada (`app/graph/`):** o antigo monólito foi particionado em submódulos coesos para gerenciamento de driver/índices (`connection.py`), consultas e mutações (`repositories.py`), resolução textual/Lucene (`resolver.py`), montagem de contexto RAG (`context.py`) e extração de subgrafos para o Vis.js (`subgraph.py`).
 - **Resiliência de IA (`app/llm/`):** provedor unificado que utiliza o Gemini como motor principal e realiza fallback automático para a Groq com cooldown inteligente em caso de esgotamento de cota (HTTP 429).
 - **Retrocompatibilidade com Fachadas:** os arquivos de raiz `api.py`, `database.py` e `engine.py` reexportam a nova estrutura como fachadas leves, garantindo que scripts de ETL existentes e comandos legados funcionem sem refatoração.
 
@@ -155,6 +155,7 @@ A documentação interativa OpenAPI/Swagger fica disponível em `/docs`.
 python -m venv venv
 source venv/bin/activate        # Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
+pip install pytest httpx  # dependências para executar os testes
 
 cp .env.example .env            # preencha NEO4J_*, GROQ_API_KEY, GEMINI_API_KEY
 python api.py                   # ou: uvicorn app.api.main:app --reload
@@ -173,7 +174,7 @@ npm install
 npm start                       # http://localhost:4200
 ```
 
-**Suíte de Testes Automatizados (29 testes unitários)**
+**Suíte de Testes Automatizados (30 testes unitários)**
 
 ```bash
 python -m pytest -v
@@ -203,6 +204,18 @@ python -m pytest -v
 - **Container não-root** e segredos fora do repositório (`.env` no `.gitignore`).
 
 ---
+
+## Limitações e escopo
+
+- As respostas dependem dos dados carregados no Neo4j; não representam uma consulta em tempo real à Câmara a cada pergunta.
+- A cobertura de proposições depende dos filtros e limites dos scripts de coleta. Ausência no grafo não significa ausência de atividade parlamentar.
+- Recuperação por grafo e instruções de contexto ajudam a fundamentar respostas, mas não eliminam erros de resolução, recuperação ou geração. Confira as informações nas fontes oficiais.
+- O subgrafo apresenta relações recuperadas; não é uma prova de que cada frase gerada foi validada individualmente.
+- Os testes automatizados verificam comportamentos do código com dependências simuladas; não medem a precisão factual do sistema em produção.
+
+## Apresentação do portfólio
+
+Veja o [texto para LinkedIn e roteiro de demonstração](docs/portfolio.md).
 
 ## Próximos passos
 

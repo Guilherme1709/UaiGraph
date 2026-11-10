@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from api import app
 
@@ -6,12 +7,22 @@ class TestApiEndpoints(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
 
-    def test_health_check(self):
+    @patch("app.api.routes.db.verify_health", return_value=True)
+    def test_health_check(self, mock_health):
         response = self.client.get("/health")
-        # Se o banco estiver acessível ou mockado, retorna 200
-        self.assertIn(response.status_code, [200, 503])
+        self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("service", data)
+        self.assertEqual(data["database"], "connected")
+        mock_health.assert_called_once()
+
+    @patch("app.api.routes.db.verify_health", return_value=False)
+    def test_health_check_unavailable(self, mock_health):
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["detail"]["database"], "unavailable")
+        self.assertEqual(response.json()["detail"]["status"], "degraded")
+        mock_health.assert_called_once()
 
     def test_invalid_chat_payload(self):
         # Pergunta com menos de 2 caracteres deve retornar 422 Unprocessable Entity
