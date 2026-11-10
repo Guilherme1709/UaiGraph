@@ -7,8 +7,6 @@ import { marked } from 'marked';
 })
 export class RagStateService {
   private ragService = inject(PoliticalRagService);
-
-  // Sinais de Estado Reativo
   readonly stats = signal<GraphStats | null>(null);
   readonly isLoading = signal<boolean>(false);
   readonly searchQuery = signal<string>('');
@@ -19,11 +17,7 @@ export class RagStateService {
   readonly selectedNode = signal<any>(null);
   readonly evidenceBills = signal<any[]>([]);
   readonly selectedBillModal = signal<any | null>(null);
-
-  // Controle de Abas no Mobile (Dossiê vs Grafo)
   readonly mobileTab = signal<'dossier' | 'graph'>('dossier');
-
-  // Controles de Configuração e Filtro
   readonly currentDepth = signal<number>(1);
   readonly maxNodes = signal<number>(25);
   readonly graphFilterMode = signal<'all' | 'coautoria' | 'partidos'>('all');
@@ -35,13 +29,9 @@ export class RagStateService {
   readonly sampleQuestions = signal<string[]>([]);
   readonly drawerSearch = signal<string>('');
   readonly selectedPartyFilter = signal<string>('ALL');
-
-  // Dados do Grafo para consumo dos componentes
   readonly rawGraphData = signal<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
   readonly filteredGraphData = signal<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
   private activeEntitiesList: string[] = [];
-
-  // Filtro computado da lista de parlamentares para a gaveta lateral
   readonly filteredPoliticians = computed(() => {
     const list = this.allPoliticians();
     const query = this.drawerSearch().toLowerCase().trim();
@@ -53,8 +43,6 @@ export class RagStateService {
       return matchName && matchParty;
     });
   });
-
-  // Lista de partidos únicos para os filtros rápidos
   readonly uniqueParties = computed(() => {
     const list = this.allPoliticians();
     const set = new Set<string>();
@@ -206,8 +194,6 @@ export class RagStateService {
           this.rawGraphData.set(res.graph);
           this.activeEntitiesList = res.entities || [];
           this.hasGraph.set(true);
-
-          // Auto-seleciona o nó principal
           const pol = res.politician;
           const targetNode = (pol ? res.graph.nodes.find(n => n.label === pol.name) : null)
             || res.graph.nodes.find(n => n.category === 'Politician')

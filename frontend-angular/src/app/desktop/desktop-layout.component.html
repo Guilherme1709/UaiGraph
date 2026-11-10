@@ -1,11 +1,6 @@
-<!-- DESKTOP SPLIT WORKSPACE (5 Cols Dossiê + 7 Cols Grafo) -->
 <div class="grid grid-cols-12 min-h-[calc(100vh-3.5rem)] w-full">
-  
-  <!-- LEFT PANEL: DOSSIÊ & CONSULTA (5 colunas) -->
   <div class="col-span-5 bg-surface-container-lowest border-r border-outline-variant/40 flex flex-col justify-between overflow-y-auto max-h-[calc(100vh-3.5rem)] w-full">
     <app-dossier-panel [isMobileView]="false"></app-dossier-panel>
-
-    <!-- Minimal Footer -->
     <div class="border-t border-outline-variant/40 bg-surface-container-low px-3 sm:px-space-md py-space-sm flex-shrink-0">
       <div class="flex items-center justify-between text-outline font-data-mono-sm text-[10px]">
         <span class="flex items-center gap-1">
@@ -16,8 +11,6 @@
       </div>
     </div>
   </div>
-
-  <!-- RIGHT PANEL: GRAFO INTERATIVO (7 colunas) -->
   <div class="col-span-7 bg-[#F4F5F7] relative flex flex-col justify-between overflow-hidden h-[calc(100vh-3.5rem)] w-full">
     <app-graph-panel [isMobileView]="false"></app-graph-panel>
   </div>

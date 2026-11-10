@@ -171,7 +171,7 @@ class GraphVisualizer:
         node_limit = int(max(35, min(safe_max_nodes * safe_depth, 400)))
 
         with self._driver.session() as session:
-            # 1. Caminhos e coautorias entre entidades (se houver 2+)
+            # Caminhos e coautorias entre entidades (se houver 2+)
             if len(resolved) >= 2:
                 for i in range(len(resolved)):
                     for j in range(i + 1, len(resolved)):
@@ -247,7 +247,7 @@ class GraphVisualizer:
                                         edges_set.add(k)
                                         edges_list.append({"from": dep, "to": co["bill"], "label": "PROPOS"})
 
-            # 2. Relações diretas individuais
+            # Relações diretas individuais
             if len(resolved) == 1 or not nodes_dict:
                 for ent in resolved:
                     dir_limit = int(max(5, min(safe_max_nodes if len(resolved) == 1 else max(15, safe_max_nodes // len(resolved)), 350)))

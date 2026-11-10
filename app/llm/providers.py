@@ -178,5 +178,4 @@ class LLMProviderManager:
                     return "Ocorreu uma instabilidade momentânea ao gerar a resposta política. Por favor, tente novamente em instantes."
         return "Não foi possível gerar a resposta no momento."
 
-# Instância padrão singleton para uso da aplicação
 llm_provider = LLMProviderManager()

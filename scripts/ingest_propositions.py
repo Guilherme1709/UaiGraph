@@ -115,12 +115,12 @@ def run():
     db = Neo4jManager()
 
     with db.driver.session() as session:
-        # 1. Limpa todas as proposições antigas para garantir pureza dos dados oficiais
+        # Apaga as proposições existentes antes de recarregar os dados da Câmara
         print("Limpando proposições anteriores para recriação limpa...")
         session.run("MATCH (b:Bill) DETACH DELETE b")
         print("Base de proposições limpa com sucesso.")
 
-        # 2. Busca todos os deputados da bancada no Neo4j com camara_id
+        # Busca todos os deputados da bancada no Neo4j com camara_id
         deputados = session.run("""
         MATCH (p:Politician)
         WHERE p.camara_id IS NOT NULL
@@ -139,10 +139,10 @@ def run():
             print(f"  [{i}/{len(deputados)}] {name} (ID: {cid}) -> {c} proposições inseridas da API.")
             time.sleep(0.1)  # Pausa entre deputados
 
-        # 3. Limpeza de proposições administrativas espúrias
+        # Limpeza de proposições administrativas espúrias
         clean_spurious_bills(session)
 
-        # 4. Estatísticas finais de auditoria
+        # Estatísticas finais de auditoria
         stats = session.run("""
         MATCH (b:Bill)
         RETURN count(b) as total_bills

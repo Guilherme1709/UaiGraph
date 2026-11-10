@@ -12,13 +12,12 @@ Pergunte em linguagem natural sobre deputados, partidos e projetos de lei e rece
 
 </div>
 
----
 
 ## Sobre o projeto
 
 O UaiGraph modela a atividade legislativa dos 53 deputados federais mineiros como um **grafo de conhecimento** no Neo4j (parlamentares, partidos, proposições e suas relações). A cada pergunta, o sistema percorre esse grafo para recuperar apenas os fatos relevantes e só então usa um LLM para redigir a resposta.
 
-O resultado é uma resposta **auditável**: o usuário vê o texto e o subgrafo de evidências que o originou.
+A interface mostra a resposta e o subgrafo recuperado para a consulta.
 
 **Exemplos de perguntas**
 
@@ -34,7 +33,6 @@ O resultado é uma resposta **auditável**: o usuário vê o texto e o subgrafo 
 - **Resiliência de provedores de LLM:** Gemini como principal, Groq como fallback automático com janela de *cooldown* em caso de limite de cota.
 - **Interface responsiva:** layouts separados para desktop (tela dividida) e mobile (navegação em abas).
 
----
 
 ## Como o RAG funciona
 
@@ -67,9 +65,8 @@ O serviço analisa o teor semântico da pergunta (bancada completa, proposiçõe
 Consultas Cypher percorrem o grafo no Neo4j descobrindo caminhos mais curtos, coautorias de projetos e relações diretas, gerando paralelamente o **contexto textual** para o LLM e o **subgrafo visual** interativo para o frontend.
 
 **5. Geração grounded** ([`app/llm/generation.py`](app/llm/generation.py))
-O prompt instrui o modelo com diretrizes rígidas de groundedness: o modelo responde exclusivamente com base no contexto injetado, com métricas oficiais fixas, e inclui instruções para mitigar tentativas de injeção de prompt. Essas instruções não garantem a ausência de erros ou ataques bem-sucedidos.
+O prompt orienta o modelo a responder com base no contexto recuperado e contém instruções para mitigar injeção de prompt. Essas instruções não garantem a ausência de erros ou ataques bem-sucedidos.
 
----
 
 ## Modelo de dados
 
@@ -81,7 +78,6 @@ graph LR
 
 Todos os nós compartilham o super-label `Entity`, o que permite uma busca unificada. O schema usa restrições de unicidade e um índice *fulltext* sobre os nomes (criados em `init_schema`).
 
----
 
 ## Stack
 
@@ -94,11 +90,10 @@ Todos os nós compartilham o super-label `Entity`, o que permite uma busca unifi
 | **Dados** | API de Dados Abertos da Câmara dos Deputados |
 | **Infra** | Docker, Render (API), Cloudflare Pages (SPA) |
 
----
 
 ## Estrutura do repositório
 
-A base de código segue uma arquitetura modular por camadas de responsabilidade única:
+A base de código segue uma organização por camadas:
 
 ```text
 ├── app/
@@ -107,7 +102,7 @@ A base de código segue uma arquitetura modular por camadas de responsabilidade 
 │   ├── llm/               # Provedores (Groq, Gemini), fallback unificado e prompts
 │   ├── graph/             # Conexão Neo4j, repositórios, resolução, contexto e subgrafos
 │   └── core/              # Configurações de ambiente e normalização de legendas
-├── api.py, engine.py, database.py  # Fachadas de retrocompatibilidade (zero quebra)
+├── api.py, engine.py, database.py  # Fachadas de retrocompatibilidade
 ├── cli.py                 # Interface interativa de terminal
 ├── Dockerfile             # Imagem de produção OCI (usuário não-root, healthcheck ativo)
 │
@@ -123,12 +118,11 @@ A base de código segue uma arquitetura modular por camadas de responsabilidade 
 
 ### Decisões de Arquitetura
 
-- **Desacoplamento HTTP vs. Domínio:** os endpoints em `app/api/` tratam apenas transporte HTTP, serialização e rate limiting. O fluxo de inteligência política é orquestrado pelo `ChatService` (`app/services/`), permitindo testes unitários com mocks sem necessidade de subir servidores ou bancos de dados.
-- **Camada de Grafos Especializada (`app/graph/`):** o antigo monólito foi particionado em submódulos coesos para gerenciamento de driver/índices (`connection.py`), consultas e mutações (`repositories.py`), resolução textual/Lucene (`resolver.py`), montagem de contexto RAG (`context.py`) e extração de subgrafos para o Vis.js (`subgraph.py`).
-- **Resiliência de IA (`app/llm/`):** provedor unificado que utiliza o Gemini como motor principal e realiza fallback automático para a Groq com cooldown inteligente em caso de esgotamento de cota (HTTP 429).
-- **Retrocompatibilidade com Fachadas:** os arquivos de raiz `api.py`, `database.py` e `engine.py` reexportam a nova estrutura como fachadas leves, garantindo que scripts de ETL existentes e comandos legados funcionem sem refatoração.
+- **HTTP e lógica da aplicação:** os endpoints em `app/api/` tratam apenas transporte HTTP, serialização e rate limiting. O fluxo de inteligência política é orquestrado pelo `ChatService` (`app/services/`), permitindo testes unitários com mocks sem necessidade de subir servidores ou bancos de dados.
+- **Consultas ao grafo (`app/graph/`):** o antigo monólito foi particionado em submódulos coesos para gerenciamento de driver/índices (`connection.py`), consultas e mutações (`repositories.py`), resolução textual/Lucene (`resolver.py`), montagem de contexto RAG (`context.py`) e extração de subgrafos para o Vis.js (`subgraph.py`).
+- **Provedores de IA (`app/llm/`):** provedor unificado que utiliza o Gemini como motor principal e realiza fallback automático para a Groq com cooldown em caso de esgotamento de cota (HTTP 429).
+- **Compatibilidade:** os arquivos de raiz `api.py`, `database.py` e `engine.py` reexportam a nova estrutura como fachadas leves, para manter os imports usados pelos scripts de ETL e comandos existentes.
 
----
 
 ## Endpoints
 
@@ -144,7 +138,6 @@ A base de código segue uma arquitetura modular por camadas de responsabilidade 
 
 A documentação interativa OpenAPI/Swagger fica disponível em `/docs`.
 
----
 
 ## Executando localmente
 
@@ -180,7 +173,6 @@ npm start                       # http://localhost:4200
 python -m pytest -v
 ```
 
----
 
 ## Deploy
 
@@ -192,7 +184,6 @@ python -m pytest -v
 
 > No plano gratuito do Render a API hiberna após um período sem uso, então a primeira requisição pode levar alguns segundos.
 
----
 
 ## Segurança
 
@@ -203,7 +194,6 @@ python -m pytest -v
 - **Mitigação de prompt injection** com delimitação de contexto e instruções defensivas.
 - **Container não-root** e segredos fora do repositório (`.env` no `.gitignore`).
 
----
 
 ## Limitações e escopo
 
@@ -213,17 +203,12 @@ python -m pytest -v
 - O subgrafo apresenta relações recuperadas; não é uma prova de que cada frase gerada foi validada individualmente.
 - Os testes automatizados verificam comportamentos do código com dependências simuladas; não medem a precisão factual do sistema em produção.
 
-## Apresentação do portfólio
-
-Veja o [texto para LinkedIn e roteiro de demonstração](docs/portfolio.md).
-
 ## Próximos passos
 
 - Busca híbrida combinando travessia de grafo e embeddings para perguntas abertas.
 - Ingestão de votações e comissões como novas relações.
 - Cache de respostas frequentes.
 
----
 
 <div align="center">
 

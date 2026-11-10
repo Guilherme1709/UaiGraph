@@ -1,7 +1,5 @@
-<!-- TOP APP BAR -->
 <header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-outline-variant/30">
   <div class="h-14 w-full px-3 sm:px-6 flex items-center justify-between">
-    <!-- Logo + Nav -->
     <div class="flex items-center gap-2 sm:gap-space-md">
       <div class="flex items-center gap-1.5 sm:gap-space-sm cursor-pointer group" (click)="state.resetView()">
         <img src="logo.png" alt="UaiGraph Logo" class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
@@ -9,15 +7,11 @@
       </div>
       
       <div class="h-5 sm:h-6 w-px bg-outline-variant/40"></div>
-
-      <!-- Botão Dossiês sempre visível no Mobile -->
       <button (click)="state.toggleDossierDrawer()" class="md:hidden flex items-center gap-1 px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-[11px] font-semibold active:scale-95 transition-all">
         <span class="material-symbols-outlined text-[15px]">folder_shared</span>
         <span>Dossiês</span>
         <span class="text-[9px] px-1 rounded-full bg-primary text-white font-bold">{{ state.allPoliticians().length || 53 }}</span>
       </button>
-
-      <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center gap-1">
         <button (click)="state.setGraphMode('all')" [ngClass]="state.graphFilterMode() === 'all' ? 'bg-primary/10 text-primary font-semibold border-primary/30' : 'text-on-surface-variant hover:text-on-surface border-transparent hover:border-outline-variant/40'" class="px-3 py-1 rounded-full border text-[12px] transition-all">
           <span class="material-symbols-outlined text-[15px] align-middle mr-0.5">hub</span> Grafo
@@ -34,8 +28,6 @@
         </button>
       </nav>
     </div>
-
-    <!-- Actions -->
     <div class="flex items-center gap-1.5 sm:gap-space-sm">
       <button (click)="state.printDossier()" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-[11px] font-semibold transition-colors shadow-sm" type="button" title="Exportar PDF do dossiê">
         <span class="material-symbols-outlined text-[15px]">download</span>

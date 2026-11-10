@@ -53,13 +53,13 @@ class Neo4jConnection:
         Idempotente: roda em modo IF NOT EXISTS.
         """
         with self.driver.session() as session:
-            # 1. Atribui o super-label :Entity a nós existentes para busca unificada
+            # Atribui o super-label :Entity a nós existentes para busca unificada
             try:
                 session.run("MATCH (n) WHERE NOT n:Entity SET n:Entity")
             except Exception as e:
                 logger.warning(f"[Neo4jConnection] Aviso ao aplicar label :Entity: {e}")
 
-            # 2. Constraints de unicidade (Neo4j 5+)
+            # Constraints de unicidade (Neo4j 5+)
             labels_to_constrain = ["Entity", "Politician", "Party", "Bill", "Institution"]
             for label in labels_to_constrain:
                 constraint_name = f"uniq_{label.lower()}_name"
@@ -72,7 +72,7 @@ class Neo4jConnection:
                 except Exception as e:
                     logger.info(f"[Neo4jConnection] Constraint {label}: {e}")
 
-            # 3. Índice Fulltext para busca aproximada e tolerante a variações de digitação
+            # Índice Fulltext para busca aproximada e tolerante a variações de digitação
             try:
                 session.run("""
                 CREATE FULLTEXT INDEX entity_name_fulltext IF NOT EXISTS

@@ -105,7 +105,7 @@ class CamaraCollector:
             
             print(f"Processando: {nome} ({partido})")
             
-            # 1. Relação e perfil básico com foto oficial: Deputado -> FILIADO_A -> Partido
+            # Relação e perfil básico com foto oficial: Deputado -> FILIADO_A -> Partido
             self.db.save_politician_profile(
                 name=nome,
                 party=partido,
@@ -115,7 +115,7 @@ class CamaraCollector:
                 uf=uf
             )
             
-            # 2. Buscamos proposições reais recentes do deputado
+            # Buscamos proposições reais recentes do deputado
             proposicoes = self.get_proposicoes_deputado(dep_id, limite=6)
             for prop in proposicoes:
                 ementa = prop.get('ementa')
@@ -134,7 +134,7 @@ class CamaraCollector:
                     obj=titulo_prop, obj_label="Bill"
                 )
                 
-                # 3. Extração semântica com o LLM a partir da ementa
+                # Extração semântica com o LLM a partir da ementa
                 if extrair_com_llm:
                     try:
                         texto_ementa = f"O deputado {nome} ({partido}) propôs a seguinte medida ({titulo_prop}): {ementa}"

@@ -1,8 +1,8 @@
-# UaiGraph — apresentação para portfólio
+# UaiGraph: apresentação para portfólio
 
 ## Publicação para LinkedIn
 
-Como explorar dados legislativos fazendo perguntas em linguagem natural — e visualizar as relações usadas para construir a resposta?
+Como explorar dados legislativos fazendo perguntas em linguagem natural: e visualizar as relações usadas para construir a resposta?
 
 Esse foi o problema que escolhi trabalhar no UaiGraph, meu projeto de portfólio com Graph RAG aplicado à bancada de deputados federais de Minas Gerais.
 
@@ -27,12 +27,12 @@ Feedbacks sobre arquitetura, experiência de uso e avaliação de sistemas RAG s
 
 #Portfolio #Python #Angular #Neo4j #RAG
 
-## Roteiro de vídeo — 60 a 90 segundos
+## Roteiro de vídeo: 60 a 90 segundos
 
 1. **Problema (0–15s):** apresente a dificuldade de explorar relações entre deputados, partidos e proposições em dados públicos.
 2. **Pergunta (15–35s):** abra a demonstração e pergunte sobre um parlamentar. Aguarde a resposta antes de gravar a próxima etapa, sem esconder eventuais limitações.
 3. **Evidências (35–55s):** mostre a resposta e o grafo; abra um nó ou dossiê e explique o significado das relações exibidas.
-4. **Arquitetura (55–75s):** mostre o diagrama do README e explique: pergunta → entidades → consulta ao Neo4j → contexto → resposta.
+4. **Arquitetura (55–75s):** mostre o diagrama do README e explique: pergunta / entidades / consulta ao Neo4j / contexto / resposta.
 5. **Fechamento (75–90s):** mostre o repositório e mencione a evolução planejada: avaliação de respostas, busca híbrida e novas relações.
 
 ## Apresentação no GitHub

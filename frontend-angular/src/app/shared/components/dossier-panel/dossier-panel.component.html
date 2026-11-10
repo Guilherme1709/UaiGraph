@@ -1,6 +1,4 @@
 <div class="p-3 sm:p-space-lg space-y-space-md">
-  
-  <!-- SEARCH BAR -->
   <div class="space-y-space-xs">
     <form (submit)="executeSearch()" class="relative">
       <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span>
@@ -9,8 +7,6 @@
         {{ state.isLoading() ? 'Buscando...' : 'Executar' }}
       </button>
     </form>
-
-    <!-- Quick Suggestions -->
     <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-nowrap sm:flex-wrap">
       <ng-container *ngIf="state.popularPoliticians().length > 0; else fallbackChips">
         <button *ngFor="let p of state.popularPoliticians().slice(0, 5)" type="button" (click)="executeQuickSearch('Quem é ' + p.name + ' e quais projetos ele propôs?')" class="px-2.5 py-1 rounded-full bg-surface border border-outline-variant/50 hover:border-primary text-on-surface font-data-mono-sm text-[11px] transition-colors flex items-center gap-1 flex-shrink-0">
@@ -37,8 +33,6 @@
   </div>
 
   <div class="h-px bg-outline-variant/30"></div>
-
-  <!-- ESTADO CARREGANDO -->
   <div *ngIf="state.isLoading()" class="py-16 text-center space-y-4">
     <div class="inline-block animate-spin w-9 h-9 border-3 border-primary border-t-transparent rounded-full"></div>
     <div class="space-y-1">
@@ -46,11 +40,7 @@
       <p class="font-data-mono-sm text-[11px] text-outline">Recuperando subgrafo no Neo4j e sintetizando resposta grounded</p>
     </div>
   </div>
-
-  <!-- DOSSIÊ & RESPOSTA (quando há consulta realizada) -->
   <article *ngIf="!state.isLoading() && (state.currentAnswerHtml() || state.currentDossier()); else emptyWelcomeState" class="space-y-space-md">
-    
-    <!-- Banner de chamada rápida para o Grafo no Mobile -->
     <div *ngIf="isMobileView && state.hasGraph()" class="p-3 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-between gap-2 shadow-xs">
       <div class="flex items-center gap-2">
         <span class="material-symbols-outlined text-primary text-[20px]">hub</span>
@@ -64,8 +54,6 @@
         <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
       </button>
     </div>
-
-    <!-- Profile Header quando é um parlamentar específico -->
     <div *ngIf="state.currentDossier()" class="flex items-start gap-3 sm:gap-space-md">
       <div class="relative flex-shrink-0">
         <img *ngIf="state.currentDossier()?.photo_url" class="w-12 h-16 sm:w-14 sm:h-[4.5rem] object-cover rounded-lg border border-outline-variant shadow-sm bg-surface-container" [src]="state.currentDossier()!.photo_url" [alt]="state.currentDossier()?.name" />
@@ -99,8 +87,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Header temático quando a consulta é geral -->
     <div *ngIf="!state.currentDossier() && state.currentAnswerHtml()" class="flex items-center gap-3 pb-3 border-b border-outline-variant/30">
       <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-sm flex-shrink-0">
         <span class="material-symbols-outlined text-[22px] sm:text-[26px]">account_balance</span>
@@ -117,13 +103,9 @@
         </h2>
       </div>
     </div>
-
-    <!-- RAG Answer -->
     <div class="space-y-space-sm text-on-surface font-headline-sm text-[14px] sm:text-[15px] leading-[22px] sm:leading-[23px]">
       <div class="prose prose-sm max-w-none text-on-surface select-text" [innerHTML]="state.currentAnswerHtml()"></div>
     </div>
-
-    <!-- Legislative Evidence Table -->
     <div *ngIf="state.evidenceBills().length > 0" class="space-y-space-xs pt-space-xs">
       <div class="flex items-center justify-between">
         <span class="font-label-caps text-[11px] uppercase text-on-surface font-semibold tracking-wider flex items-center gap-1.5">
@@ -170,8 +152,6 @@
         </table>
       </div>
     </div>
-
-    <!-- Detected Entities Badges -->
     <div *ngIf="state.detectedEntities().length > 0" class="flex items-center gap-1.5 flex-wrap pt-1">
       <span class="font-label-caps text-[10px] uppercase text-on-surface-variant font-semibold mr-1">Entidades:</span>
       <span *ngFor="let ent of state.detectedEntities()" (click)="executeQuickSearch('Quem é ' + ent + '?')" class="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-primary font-data-mono-sm text-[11px] font-semibold cursor-pointer hover:bg-primary/20">
@@ -180,8 +160,6 @@
     </div>
 
   </article>
-
-  <!-- ESTADO INICIAL EM BRANCO -->
   <ng-template #emptyWelcomeState>
     <div *ngIf="!state.isLoading()" class="py-8 sm:py-10 px-2 text-center space-y-4 sm:space-y-5">
       <img src="logo.png" alt="UaiGraph Logo" class="w-20 h-20 sm:w-24 sm:h-24 mx-auto object-contain transition-transform duration-300 hover:scale-105">
@@ -190,8 +168,6 @@
           Consulte propostas, filiações partidárias e conexões dos 53 deputados federais de Minas Gerais.
         </p>
       </div>
-
-      <!-- Sugestões de consulta -->
       <div class="pt-2 space-y-2 text-left max-w-sm mx-auto">
         <span class="font-label-caps text-[10px] uppercase text-outline font-semibold tracking-wider">Perguntas recomendadas:</span>
         <div class="space-y-1.5">

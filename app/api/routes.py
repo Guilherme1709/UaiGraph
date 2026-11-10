@@ -17,7 +17,6 @@ logger = logging.getLogger("graphpolitics.api.routes")
 
 router = APIRouter()
 
-# Instâncias padrão de banco e serviço de chat
 db = Neo4jManager()
 chat_service = ChatService(db=db)
 

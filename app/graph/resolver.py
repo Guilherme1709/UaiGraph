@@ -68,7 +68,7 @@ class EntityResolver:
 
         norm_query = remove_accents(entity_query)
 
-        # 0. Verificação imediata de partido (sigla ou nome por extenso)
+        # Verificação imediata de partido (sigla ou nome por extenso)
         clean_party = normalize_party_name(entity_query)
         with self._driver.session() as session:
             if clean_party in KNOWN_PARTIES:
@@ -79,7 +79,7 @@ class EntityResolver:
                 if party_match:
                     return party_match["name"]
 
-            # 1. Match exato no banco (case-insensitive)
+            # Match exato no banco (case-insensitive)
             q_exact = """
             MATCH (e:Entity)
             WHERE toLower(e.name) = toLower($name)
@@ -90,7 +90,7 @@ class EntityResolver:
             if res:
                 return res["name"]
 
-            # 2. Busca Fulltext (Lucene)
+            # Busca Fulltext (Lucene)
             try:
                 words = re.findall(r'\w+', entity_query)
                 if words:
@@ -108,7 +108,7 @@ class EntityResolver:
             except Exception:
                 pass
 
-            # 3. Match sem acentos em nós de Politician e Entity
+            # Match sem acentos em nós de Politician e Entity
             all_entities = self._get_all_entity_names()
             
             # Match exato sem acentos

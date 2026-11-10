@@ -65,7 +65,7 @@ def run_migration():
     db = Neo4jManager()
     
     with db.driver.session() as session:
-        # 1. Pega todos os nós de Party atuais
+        # Pega todos os nós de Party atuais
         parties = session.run("MATCH (pty:Party) RETURN pty.name as name").data()
         party_names = [p['name'] for p in parties]
         print(f"Total de nós de Party encontrados: {len(party_names)}")

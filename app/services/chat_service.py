@@ -59,11 +59,11 @@ class ChatService:
         graph_depth = max(1, min(depth or 1, 3))
         safe_max_nodes = max(5, min(max_nodes or 25, 500))
 
-        # 1. Extração multi-entidade
+        # Extração multi-entidade
         entities = self.entity_extractor(clean_question)
         intents = self.detect_intent(clean_question)
 
-        # 2. Roteamento de contexto e subgrafo
+        # Roteamento de contexto e subgrafo
         if not entities:
             if intents["is_bills_query"]:
                 context = db.get_bancada_bills_context(limit=25)
@@ -82,10 +82,10 @@ class ChatService:
                 context = db.get_context_for_entities(entities, depth=rag_depth, include_colleagues=False)
                 subgraph = db.get_subgraph_data_for_entities(entities, max_nodes=safe_max_nodes, depth=graph_depth)
 
-        # 3. Geração da resposta fundamentada
+        # Geração da resposta fundamentada
         answer = self.answer_generator(context, clean_question)
 
-        # 4. Busca do perfil oficial de parlamentar se aplicável
+        # Busca do perfil oficial de parlamentar se aplicável
         politician_card = None
         for ent in resolved_entities:
             pol = db.get_politician_details(ent)

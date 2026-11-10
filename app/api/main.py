@@ -70,7 +70,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Conecta as rotas da aplicação
 app.include_router(router)
 
 # Monta o frontend Angular se compilado em modo estático

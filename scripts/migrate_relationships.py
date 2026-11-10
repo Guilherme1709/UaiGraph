@@ -11,7 +11,6 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 
 RELATION_TRANSLATION_MAP = {
-    # Core relationships requested by user
     "MEMBER_OF": "FILIADO_A",
     "PROPOSED": "PROPOS",
 
